@@ -1,0 +1,88 @@
+load("@HOME//:utils.bzl", "doaction", "filter", "symlinking")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+doaction(
+	name = "myaction",
+	args = {
+	    "arg1": "something",
+		...
+		"out_dir": "FolderA",
+		"params": "other flags"
+	},
+	srcs = [
+		"labels of srcs items"
+	],
+	visibility = ["//visibility:public"]
+)
+
+"""
+Not working this filegroup and filter
+filegroup(
+	name = "srcsss",
+	srcs = [":doaction"],
+	output_group = "source_files",
+	visibility = ["//visibility:public"]
+)
+
+filter(
+	name = "filter_srcs",
+	srcs = [":doaction"],
+	suffix = ".cpp",
+	visibility = ["//visibility:public"]
+)
+"""
+
+symlinking(
+	name = "srcs",
+	srcs = [":doaction"],
+	suffix = ".cpp",
+	visibility = ["//visibility:public"]
+)
+
+
+## This works since I'm using the symlink to filter out source files
+cc_library(
+	name = "lib_symlink",
+	srcs = [ ":srcs" ],			`	## Using the symlinking to bring in the soft linked cpp files
+	hdrs = [ ":doaction" ],			## Just bringing in the doaction folder, since it doesn't affect the build
+	deps = [ "@EXT//:external" ],
+	copts = [
+		"-Wall",
+		"about 6 other compiler flags"
+	],
+	includes = [ "FolderA" ], 		## Folder created by doaction
+	linkstatic = False,
+	visibility = ["//visibility:public"]
+)
+
+
+## This does not work, since filter is returning an empty set
+cc_library(
+	name = "lib_filter",
+	srcs = [ ":filter_srcs" ],		## Using the filter rule to bring in source files, but it is empty
+	hdrs = [ ":doaction" ],			## I'd want to use filter to and bring in hdrs as well, but for now using the entire folder since filter is not working
+	deps = [ "@EXT//:external" ],
+	copts = [
+		"-Wall",
+		"about 6 other compiler flags"
+	],
+	includes = [ "FolderA" ], 		## Folder created by doaction
+	linkstatic = False,
+	visibility = ["//visibility:public"]
+)
+
+
+## This does not work, since filter is returning an empty set
+cc_library(
+	name = "lib_filegroup",
+	srcs = [ ":srcsss" ],			## Using the filegroup collection in source files, but it is empty
+	hdrs = [ ":doaction" ],			
+	deps = [ "@EXT//:external" ],
+	copts = [
+		"-Wall",
+		"about 6 other compiler flags"
+	],
+	includes = [ "FolderA" ], 		## Folder created by doaction
+	linkstatic = False,
+	visibility = ["//visibility:public"]
+)

@@ -94,7 +94,7 @@ def _impl_doaction(ctx):
 	"""
 	return [ 
 		DefaultInfo(files = generated_files),
-		OutGroupInfo(
+		OutputGroupInfo(
 			files = generated_files,
 			source_files = depset([ x for x in generated_files.to_list() if x.path.endswith(".cpp") ]),
 			header_files = depset([ x for x in generated_files.to_list() if x.path.endswith(".h") ])
